@@ -9,7 +9,7 @@ import "./libraries/SafeMath.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IWETH.sol";
 
-contract SnowSwapRouter is IUniswapV2Router02 {
+contract SnowswapRouter is IUniswapV2Router02 {
     using SafeMath for uint;
 
     address public immutable override factory;
