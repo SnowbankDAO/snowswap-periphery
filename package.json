@@ -19,9 +19,7 @@
     "@uniswap/lib": "4.0.1-alpha",
     "@uniswap/v2-core": "1.0.0",
     "fs": "^0.0.1-security",
-    "hardhat-prettier": "^0.0.1"
-  },
-  "devDependencies": {
+    "hardhat-prettier": "^0.0.1",
     "ethers": "^5.5.1",
     "hardhat": "^2.6.8",
     "hardhat-deploy": "^0.9.10",
@@ -41,7 +39,6 @@
     "ethereumjs-util": "^6.2.0",
     "mocha": "^6.2.2",
     "ncp": "^2.0.0",
-    "prettier": "^1.19.1",
     "rimraf": "^3.0.0",
     "solc": "0.6.6",
     "ts-node": "^8.5.4",
