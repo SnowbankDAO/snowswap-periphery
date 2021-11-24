@@ -7,6 +7,8 @@ module.exports = async ({ getNamedAccounts, deployments, network }) => {
   const file = fs.readFileSync('../SnowSwapContracts.json')
   const contracts = JSON.parse(file)
 
+  console.log(contracts.factoryAddress)
+
   await deploy('SnowswapRouter', {
     from: feesSetter,
     args: [contracts.factoryAddress, '0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7'],
