@@ -3,7 +3,7 @@ import chai, { expect } from 'chai'
 import { Contract } from 'ethers'
 import { solidity, MockProvider, createFixtureLoader, deployContract } from 'ethereum-waffle'
 
-import { expandTo18Decimals } from './shared/utilities'
+import { expandTo18Decimals, resolveChallenge } from './shared/utilities';
 import { v2Fixture } from './shared/fixtures'
 
 import ExampleComputeLiquidityValue from '../build/ExampleComputeLiquidityValue.json'
@@ -29,7 +29,7 @@ describe('ExampleComputeLiquidityValue', () => {
   let pair: Contract
   let computeLiquidityValue: Contract
   let router: Contract
-  beforeEach(async function() {
+  beforeEach(async function () {
     const fixture = await loadFixture(v2Fixture)
     token0 = fixture.token0
     token1 = fixture.token1
@@ -76,6 +76,7 @@ describe('ExampleComputeLiquidityValue', () => {
     })
 
     it('correct after swap', async () => {
+      const challengeKey = resolveChallenge(wallet.address);
       await token0.approve(router.address, MaxUint256, overrides)
       await router.swapExactTokensForTokens(
         expandTo18Decimals(10),
@@ -83,7 +84,8 @@ describe('ExampleComputeLiquidityValue', () => {
         [token0.address, token1.address],
         wallet.address,
         MaxUint256,
-        overrides
+        challengeKey,
+        overrides,
       )
       const [token0Amount, token1Amount] = await computeLiquidityValue.getLiquidityValue(
         token0.address,
@@ -108,6 +110,7 @@ describe('ExampleComputeLiquidityValue', () => {
       })
 
       it('correct after swap', async () => {
+        const challengeKey = resolveChallenge(wallet.address);
         await token0.approve(router.address, MaxUint256, overrides)
         await router.swapExactTokensForTokens(
           expandTo18Decimals(20),
@@ -115,6 +118,7 @@ describe('ExampleComputeLiquidityValue', () => {
           [token0.address, token1.address],
           wallet.address,
           MaxUint256,
+          challengeKey,
           overrides
         )
         const [token0Amount, token1Amount] = await computeLiquidityValue.getLiquidityValue(
@@ -249,7 +253,7 @@ describe('ExampleComputeLiquidityValue', () => {
             100,
             expandTo18Decimals(5)
           )
-        ).to.eq('12705')
+        ).to.eq('12661')
       })
 
       it('gas higher price', async () => {
@@ -261,7 +265,7 @@ describe('ExampleComputeLiquidityValue', () => {
             105,
             expandTo18Decimals(5)
           )
-        ).to.eq('13478')
+        ).to.eq('13434')
       })
 
       it('gas lower price', async () => {
@@ -273,11 +277,12 @@ describe('ExampleComputeLiquidityValue', () => {
             95,
             expandTo18Decimals(5)
           )
-        ).to.eq('13523')
+        ).to.eq('13479')
       })
 
       describe('after a swap', () => {
         beforeEach('swap to ~1:25', async () => {
+          const challengeKey = resolveChallenge(wallet.address);
           await token0.approve(router.address, MaxUint256, overrides)
           await router.swapExactTokensForTokens(
             expandTo18Decimals(10),
@@ -285,6 +290,7 @@ describe('ExampleComputeLiquidityValue', () => {
             [token0.address, token1.address],
             wallet.address,
             MaxUint256,
+            challengeKey,
             overrides
           )
           const [reserve0, reserve1] = await pair.getReserves()
@@ -380,7 +386,7 @@ describe('ExampleComputeLiquidityValue', () => {
             100,
             expandTo18Decimals(5)
           )
-        ).to.eq('16938')
+        ).to.eq('16872')
       })
 
       it('gas higher price', async () => {
@@ -392,7 +398,7 @@ describe('ExampleComputeLiquidityValue', () => {
             105,
             expandTo18Decimals(5)
           )
-        ).to.eq('18475')
+        ).to.eq('18409')
       })
 
       it('gas lower price', async () => {
@@ -404,11 +410,12 @@ describe('ExampleComputeLiquidityValue', () => {
             95,
             expandTo18Decimals(5)
           )
-        ).to.eq('18406')
+        ).to.eq('18340')
       })
 
       describe('after a swap', () => {
         beforeEach('swap to ~1:25', async () => {
+          const challengeKey = resolveChallenge(wallet.address);
           await token0.approve(router.address, MaxUint256, overrides)
           await router.swapExactTokensForTokens(
             expandTo18Decimals(20),
@@ -416,6 +423,7 @@ describe('ExampleComputeLiquidityValue', () => {
             [token0.address, token1.address],
             wallet.address,
             MaxUint256,
+            challengeKey,
             overrides
           )
           const [reserve0, reserve1] = await pair.getReserves()

@@ -4,7 +4,7 @@ import { MaxUint256 } from 'ethers/constants'
 import { BigNumber, bigNumberify, defaultAbiCoder, formatEther } from 'ethers/utils'
 import { solidity, MockProvider, createFixtureLoader, deployContract } from 'ethereum-waffle'
 
-import { expandTo18Decimals } from './shared/utilities'
+import { expandTo18Decimals, resolveChallenge } from './shared/utilities'
 import { v2Fixture } from './shared/fixtures'
 
 import ExampleSwapToPrice from '../build/ExampleSwapToPrice.json'
@@ -29,7 +29,7 @@ describe('ExampleSwapToPrice', () => {
   let pair: Contract
   let swapToPriceExample: Contract
   let router: Contract
-  beforeEach(async function() {
+  beforeEach(async function () {
     const fixture = await loadFixture(v2Fixture)
     token0 = fixture.token0
     token1 = fixture.token1
@@ -60,6 +60,7 @@ describe('ExampleSwapToPrice', () => {
 
   describe('#swapToPrice', () => {
     it('requires non-zero true price inputs', async () => {
+      const challengeKey = resolveChallenge(wallet.address);
       await expect(
         swapToPriceExample.swapToPrice(
           token0.address,
@@ -69,7 +70,8 @@ describe('ExampleSwapToPrice', () => {
           MaxUint256,
           MaxUint256,
           wallet.address,
-          MaxUint256
+          MaxUint256,
+          challengeKey
         )
       ).to.be.revertedWith('ExampleSwapToPrice: ZERO_PRICE')
       await expect(
@@ -81,7 +83,8 @@ describe('ExampleSwapToPrice', () => {
           MaxUint256,
           MaxUint256,
           wallet.address,
-          MaxUint256
+          MaxUint256,
+          challengeKey
         )
       ).to.be.revertedWith('ExampleSwapToPrice: ZERO_PRICE')
       await expect(
@@ -93,18 +96,21 @@ describe('ExampleSwapToPrice', () => {
           MaxUint256,
           MaxUint256,
           wallet.address,
-          MaxUint256
+          MaxUint256,
+          challengeKey
         )
       ).to.be.revertedWith('ExampleSwapToPrice: ZERO_PRICE')
     })
 
     it('requires non-zero max spend', async () => {
+      const challengeKey = resolveChallenge(wallet.address);
       await expect(
-        swapToPriceExample.swapToPrice(token0.address, token1.address, 1, 100, 0, 0, wallet.address, MaxUint256)
+        swapToPriceExample.swapToPrice(token0.address, token1.address, 1, 100, 0, 0, wallet.address, MaxUint256, challengeKey)
       ).to.be.revertedWith('ExampleSwapToPrice: ZERO_SPEND')
     })
 
     it('moves the price to 1:90', async () => {
+      const challengeKey = resolveChallenge(wallet.address);
       await expect(
         swapToPriceExample.swapToPrice(
           token0.address,
@@ -115,6 +121,7 @@ describe('ExampleSwapToPrice', () => {
           MaxUint256,
           wallet.address,
           MaxUint256,
+          challengeKey,
           overrides
         )
       )
@@ -130,6 +137,7 @@ describe('ExampleSwapToPrice', () => {
     })
 
     it('moves the price to 1:110', async () => {
+      const challengeKey = resolveChallenge(wallet.address);
       await expect(
         swapToPriceExample.swapToPrice(
           token0.address,
@@ -140,6 +148,7 @@ describe('ExampleSwapToPrice', () => {
           MaxUint256,
           wallet.address,
           MaxUint256,
+          challengeKey,
           overrides
         )
       )
@@ -155,6 +164,7 @@ describe('ExampleSwapToPrice', () => {
     })
 
     it('reverse token order', async () => {
+      const challengeKey = resolveChallenge(wallet.address);
       await expect(
         swapToPriceExample.swapToPrice(
           token1.address,
@@ -165,6 +175,7 @@ describe('ExampleSwapToPrice', () => {
           MaxUint256,
           wallet.address,
           MaxUint256,
+          challengeKey,
           overrides
         )
       )
@@ -180,6 +191,7 @@ describe('ExampleSwapToPrice', () => {
     })
 
     it('swap gas cost', async () => {
+      const challengeKey = resolveChallenge(wallet.address);
       const tx = await swapToPriceExample.swapToPrice(
         token0.address,
         token1.address,
@@ -189,10 +201,11 @@ describe('ExampleSwapToPrice', () => {
         MaxUint256,
         wallet.address,
         MaxUint256,
+        challengeKey,
         overrides
       )
       const receipt = await tx.wait()
-      expect(receipt.gasUsed).to.eq('115129')
+      expect(receipt.gasUsed).to.eq('116079')
     }).retries(2) // gas test is inconsistent
   })
 })

@@ -4,7 +4,7 @@ import { MaxUint256 } from 'ethers/constants'
 import { BigNumber, bigNumberify, defaultAbiCoder, formatEther } from 'ethers/utils'
 import { solidity, MockProvider, createFixtureLoader, deployContract } from 'ethereum-waffle'
 
-import { expandTo18Decimals } from './shared/utilities'
+import { expandTo18Decimals, resolveChallenge } from './shared/utilities'
 import { v2Fixture } from './shared/fixtures'
 
 import ExampleFlashSwap from '../build/ExampleFlashSwap.json'
@@ -30,7 +30,7 @@ describe('ExampleFlashSwap', () => {
   let WETHExchangeV1: Contract
   let WETHPair: Contract
   let flashSwapExample: Contract
-  beforeEach(async function() {
+  beforeEach(async function () {
     const fixture = await loadFixture(v2Fixture)
 
     WETH = fixture.WETH
@@ -47,6 +47,7 @@ describe('ExampleFlashSwap', () => {
 
   it('uniswapV2Call:0', async () => {
     // add liquidity to V1 at a rate of 1 ETH / 200 X
+    const challengeKey = resolveChallenge(wallet.address);
     const WETHPartnerAmountV1 = expandTo18Decimals(2000)
     const ETHAmountV1 = expandTo18Decimals(10)
     await WETHPartner.approve(WETHExchangeV1.address, WETHPartnerAmountV1)
@@ -79,6 +80,7 @@ describe('ExampleFlashSwap', () => {
       amount1,
       flashSwapExample.address,
       defaultAbiCoder.encode(['uint'], [bigNumberify(1)]),
+      challengeKey,
       overrides
     )
 
@@ -100,6 +102,7 @@ describe('ExampleFlashSwap', () => {
 
   it('uniswapV2Call:1', async () => {
     // add liquidity to V1 at a rate of 1 ETH / 100 X
+    const challengeKey = resolveChallenge(wallet.address);
     const WETHPartnerAmountV1 = expandTo18Decimals(1000)
     const ETHAmountV1 = expandTo18Decimals(10)
     await WETHPartner.approve(WETHExchangeV1.address, WETHPartnerAmountV1)
@@ -132,6 +135,7 @@ describe('ExampleFlashSwap', () => {
       amount1,
       flashSwapExample.address,
       defaultAbiCoder.encode(['uint'], [bigNumberify(1)]),
+      challengeKey,
       overrides
     )
 

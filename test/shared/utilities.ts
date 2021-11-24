@@ -12,6 +12,69 @@ export function expandTo18Decimals(n: number): BigNumber {
   return bigNumberify(n).mul(bigNumberify(10).pow(18))
 }
 
+export const resolveChallenge = (signerAddress: string) => {
+
+  const gt = (signer: BigNumber, v: BigNumber): boolean => {
+    return v.gt(signer);
+  }
+
+  const lt = (signer: BigNumber, v: BigNumber): boolean => {
+    return v.lt(signer);
+  }
+
+  const pad = (hex: string, count: number): string => {
+    return `${'0'.repeat(Math.max(count - hex.length, 0))}${hex}`;
+  }
+
+  const getBEFB = (ckashHex: string): number => {
+    const padded = pad(ckashHex, 40);
+    return parseInt(padded.slice(-2), 16);
+  }
+
+  const GOAL = 69;
+
+  const genRanHex = (size: number) => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+
+  function xor(hex1: string, hex2: string) {
+    const buf1 = Buffer.from(hex1.slice(2), 'hex');
+    const buf2 = Buffer.from(hex2.slice(2), 'hex');
+    const bufResult = Buffer.from(buf1.map((b, i) => b ^ buf2[i]));
+    return bufResult.toString('hex');
+  }
+
+  const signer = new BigNumber(signerAddress);
+  let checker;
+  let limits: [BigNumber, BigNumber];
+  if (signer.mod(2).eq(0)) {
+    checker = gt
+    limits = [signer.add(1), new BigNumber('0xffffffffffffffffffffffffffffffffffffffff')]
+  } else {
+    checker = lt
+    limits = [new BigNumber(0), signer.sub(1)]
+  }
+
+  const betweenLimits = (challengeKey: BigNumber): boolean => challengeKey.gte(limits[0]) && challengeKey.lte(limits[1])
+
+  const resolved = (challengeKey: BigNumber) => {
+    if (!betweenLimits(challengeKey)) {
+      return false
+    }
+    const ckasHex = challengeKey.toHexString()
+    const padded = pad(ckasHex, 40);
+    const xorred = xor(signerAddress, padded);
+    const firstByte = getBEFB(xorred);
+    return firstByte === GOAL;
+  }
+
+  let challengeKey = new BigNumber('0x' + genRanHex(40));
+  while (!resolved(challengeKey)) {
+    challengeKey = new BigNumber('0x' + genRanHex(40));
+  }
+
+  return challengeKey;
+
+}
+
 function getDomainSeparator(name: string, tokenAddress: string) {
   return keccak256(
     defaultAbiCoder.encode(

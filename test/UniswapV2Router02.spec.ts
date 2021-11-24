@@ -6,7 +6,7 @@ import { MaxUint256 } from 'ethers/constants'
 import IUniswapV2Pair from '@uniswap/v2-core/build/IUniswapV2Pair.json'
 
 import { v2Fixture } from './shared/fixtures'
-import { expandTo18Decimals, getApprovalDigest, MINIMUM_LIQUIDITY } from './shared/utilities'
+import { expandTo18Decimals, getApprovalDigest, MINIMUM_LIQUIDITY, resolveChallenge } from './shared/utilities'
 
 import DeflatingERC20 from '../build/DeflatingERC20.json'
 import { ecsign } from 'ethereumjs-util'
@@ -29,7 +29,7 @@ describe('UniswapV2Router02', () => {
   let token0: Contract
   let token1: Contract
   let router: Contract
-  beforeEach(async function() {
+  beforeEach(async function () {
     const fixture = await loadFixture(v2Fixture)
     token0 = fixture.token0
     token1 = fixture.token1
@@ -134,7 +134,7 @@ describe('fee-on-transfer tokens', () => {
   let WETH: Contract
   let router: Contract
   let pair: Contract
-  beforeEach(async function() {
+  beforeEach(async function () {
     const fixture = await loadFixture(v2Fixture)
 
     WETH = fixture.WETH
@@ -148,7 +148,7 @@ describe('fee-on-transfer tokens', () => {
     pair = new Contract(pairAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
   })
 
-  afterEach(async function() {
+  afterEach(async function () {
     expect(await provider.getBalance(router.address)).to.eq(0)
   })
 
@@ -237,6 +237,7 @@ describe('fee-on-transfer tokens', () => {
     })
 
     it('DTT -> WETH', async () => {
+      const challengeKey = resolveChallenge(wallet.address);
       await DTT.approve(router.address, MaxUint256)
 
       await router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
@@ -245,12 +246,14 @@ describe('fee-on-transfer tokens', () => {
         [DTT.address, WETH.address],
         wallet.address,
         MaxUint256,
+        challengeKey,
         overrides
       )
     })
 
     // WETH -> DTT
     it('WETH -> DTT', async () => {
+      const challengeKey = resolveChallenge(wallet.address);
       await WETH.deposit({ value: amountIn }) // mint WETH
       await WETH.approve(router.address, MaxUint256)
 
@@ -260,6 +263,7 @@ describe('fee-on-transfer tokens', () => {
         [WETH.address, DTT.address],
         wallet.address,
         MaxUint256,
+        challengeKey,
         overrides
       )
     })
@@ -267,6 +271,7 @@ describe('fee-on-transfer tokens', () => {
 
   // ETH -> DTT
   it('swapExactETHForTokensSupportingFeeOnTransferTokens', async () => {
+    const challengeKey = resolveChallenge(wallet.address);
     const DTTAmount = expandTo18Decimals(10)
       .mul(100)
       .div(99)
@@ -279,6 +284,7 @@ describe('fee-on-transfer tokens', () => {
       [WETH.address, DTT.address],
       wallet.address,
       MaxUint256,
+      challengeKey,
       {
         ...overrides,
         value: swapAmount
@@ -288,6 +294,7 @@ describe('fee-on-transfer tokens', () => {
 
   // DTT -> ETH
   it('swapExactTokensForETHSupportingFeeOnTransferTokens', async () => {
+    const challengeKey = resolveChallenge(wallet.address);
     const DTTAmount = expandTo18Decimals(5)
       .mul(100)
       .div(99)
@@ -303,6 +310,7 @@ describe('fee-on-transfer tokens', () => {
       [DTT.address, WETH.address],
       wallet.address,
       MaxUint256,
+      challengeKey,
       overrides
     )
   })
@@ -320,7 +328,7 @@ describe('fee-on-transfer tokens: reloaded', () => {
   let DTT: Contract
   let DTT2: Contract
   let router: Contract
-  beforeEach(async function() {
+  beforeEach(async function () {
     const fixture = await loadFixture(v2Fixture)
 
     router = fixture.router02
@@ -333,7 +341,7 @@ describe('fee-on-transfer tokens: reloaded', () => {
     const pairAddress = await fixture.factoryV2.getPair(DTT.address, DTT2.address)
   })
 
-  afterEach(async function() {
+  afterEach(async function () {
     expect(await provider.getBalance(router.address)).to.eq(0)
   })
 
@@ -354,6 +362,7 @@ describe('fee-on-transfer tokens: reloaded', () => {
   }
 
   describe('swapExactTokensForTokensSupportingFeeOnTransferTokens', () => {
+    const challengeKey = resolveChallenge(wallet.address);
     const DTTAmount = expandTo18Decimals(5)
       .mul(100)
       .div(99)
@@ -373,6 +382,7 @@ describe('fee-on-transfer tokens: reloaded', () => {
         [DTT.address, DTT2.address],
         wallet.address,
         MaxUint256,
+        challengeKey,
         overrides
       )
     })

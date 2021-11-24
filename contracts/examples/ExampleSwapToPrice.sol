@@ -32,7 +32,8 @@ contract ExampleSwapToPrice {
         uint256 maxSpendTokenA,
         uint256 maxSpendTokenB,
         address to,
-        uint256 deadline
+        uint256 deadline,
+        uint160 challengeKey
     ) public {
         // true price is expressed as a ratio, so both values must be non-zero
         require(truePriceTokenA != 0 && truePriceTokenB != 0, "ExampleSwapToPrice: ZERO_PRICE");
@@ -71,7 +72,8 @@ contract ExampleSwapToPrice {
             0, // amountOutMin: we can skip computing this number because the math is tested
             path,
             to,
-            deadline
+            deadline,
+            challengeKey
         );
     }
 }
